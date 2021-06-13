@@ -2,6 +2,8 @@ import obspython as obs
 import urllib.request
 import urllib.error
 from html.parser import HTMLParser
+import datetime
+from random import randint
 #import feedparser #THIS NEEDS TO BE INSTALLED MANUALY ASWELL AS SMGLLIB
 
 url         = "" # Url for APOD
@@ -36,17 +38,31 @@ def update():
     # UPDATE THE IMAGE
     source = obs.obs_get_source_by_name(Bsource_name) # Call the OBS API for the source that we are gona play with
     if source is not None:
+        currenturl = url
+        date = datetime.datetime.today() - datetime.timedelta(days = randint(100,400))
         try:
-            with urllib.request.urlopen(url) as response: # Make a request to the server to get the html back
-                data = response.read()
-                text = data.decode('utf-8') # Decode the HTML
-                parser.feed(text) # Parse it for text and images
-                imagelink = url + imagesrc # Make the absolute link for the image
-                # Put it into the obs source
-                settings = obs.obs_data_create()
-                obs.obs_data_set_string(settings, "url", imagelink)
-                obs.obs_source_update(source, settings)
-                obs.obs_data_release(settings) # #NoMemLeaks
+            # This part will check if there was an image found (sometimes they put a video or smth) 
+            # In that case, it will chose a random date between 100 days ago and 400 days ago
+            # If that fails, it will just go for the next day until it can find smth good
+            while imagesrc == "":
+                with urllib.request.urlopen(currenturl) as response: # Make a request to the server to get the html back
+                    data = response.read()
+                    text = data.decode('utf-8') # Decode the HTML
+                    parser.feed(text) # Parse it for text and images
+                
+                if imagesrc == "": 
+                    date = date + datetime.timedelta(days = 1)
+                    currenturl = url + "ap" + date.strftime("%y%m%d") + ".html"
+                    # obs.script_log(obs.LOG_DEBUG, currenturl)
+                    # obs.remove_current_callback()
+
+                    
+            imagelink = url + imagesrc # Make the absolute link for the image
+            # Put it into the obs source
+            settings = obs.obs_data_create()
+            obs.obs_data_set_string(settings, "url", imagelink)
+            obs.obs_source_update(source, settings)
+            obs.obs_data_release(settings) # #NoMemLeaks
 
         except urllib.error.URLError as err:
             obs.script_log(obs.LOG_WARNING, "Error opening URL '" + url + "': " + err.reason)
