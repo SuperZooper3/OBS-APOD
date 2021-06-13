@@ -13,6 +13,7 @@ Tsource_name = "" # Text source
 imagesrc = "" # Relative image source link
 imagelink = "" # Actual image source link that is inserted
 descriptionText = ""
+refreshtime = 10
 
 # YOINKED STRAIGHT FROM https://docs.python.org/3/library/html.parser.html
 # This Parser is made to get the IMG from the HTML and put it at imagesrc
@@ -39,7 +40,8 @@ def update():
     source = obs.obs_get_source_by_name(Bsource_name) # Call the OBS API for the source that we are gona play with
     if source is not None:
         currenturl = url
-        date = datetime.datetime.today() - datetime.timedelta(days = randint(100,400))
+        dayoffset = (int(datetime.datetime.today().strftime("%Y%m%d")) * 975128347821798321893) % 365  # Textmash go brrrrr
+        date = datetime.datetime.today() - datetime.timedelta(days = dayoffset)
         try:
             # This part will check if there was an image found (sometimes they put a video or smth) 
             # In that case, it will chose a random date between 100 days ago and 400 days ago
@@ -101,16 +103,18 @@ def script_update(settings): # Sets the python variables to what is in OBS
     global url
     global Bsource_name
     global Tsource_name
+    global refreshtime
 
     url         = obs.obs_data_get_string(settings, "url")
     Bsource_name = obs.obs_data_get_string(settings, "Bsource")
     Tsource_name = obs.obs_data_get_string(settings, "Tsource")
+    refreshtime = obs.obs_data_get_int(settings, "refresh")
 
     # Lil timer to make it automaticaly refresh every 5 minutes
     obs.timer_remove(update)
 
     if url != "" and Bsource_name != "" and Tsource_name != "" :
-        obs.timer_add(update, 5 * 60 * 1000)
+        obs.timer_add(update, refreshtime * 60 * 1000)
 
 def script_defaults(settings): # Sets the defaults for the values in the obs editor
     obs.obs_data_set_default_string(settings, "url", "https://apod.nasa.gov/apod/")
@@ -120,6 +124,7 @@ def script_properties(): # Get the property boxes so we can type them in in the 
     props = obs.obs_properties_create()
 
     # Browser Source
+    obs.obs_properties_add_int(props, "refresh", "Refresh Time", 10, 3600, 1)
     obs.obs_properties_add_text(props, "url", "URL", obs.OBS_TEXT_DEFAULT)
     obs.obs_properties_add_text(props, "rssurl", "RSS URL", obs.OBS_TEXT_DEFAULT)
     p = obs.obs_properties_add_list(props, "Bsource", "Browser Source", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
