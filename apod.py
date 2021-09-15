@@ -56,9 +56,7 @@ def update():
                     date = date + datetime.timedelta(days = 1)
                     currenturl = url + "ap" + date.strftime("%y%m%d") + ".html"
                     # obs.script_log(obs.LOG_DEBUG, currenturl)
-                    # obs.remove_current_callback()
-
-                    
+                    # obs.remove_current_callback()        
             imagelink = url + imagesrc # Make the absolute link for the image
             # Put it into the obs source
             settings = obs.obs_data_create()
