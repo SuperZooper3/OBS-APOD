@@ -65,7 +65,7 @@ def update():
             obs.obs_data_release(settings) # #NoMemLeaks
 
         except urllib.error.URLError as err:
-            obs.script_log(obs.LOG_WARNING, "Error opening URL '" + url + "': " + err.reason)
+            obs.script_log(obs.LOG_WARNING, "Error opening URL '" + str(url) + "': " + str(err.reason))
             obs.remove_current_callback()
 
         obs.obs_source_release(source) # #NoMemLeaks
@@ -95,7 +95,7 @@ def refresh_pressed(props, prop): # Used to make the button run and refresh the 
 # OBS SETTINGS STUFF------------------------------------------------------------
 
 def script_description():
-    return "Gets the APOD picutre link and sets it to a Browser Source\n\nBy twitch.tv/SuperZooper3"
+    return "Gets the APOD picutre link and sets it to a Browser Source\n\nBy SuperZooper3"
 
 def script_update(settings): # Sets the python variables to what is in OBS
     global url
